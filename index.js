@@ -8,7 +8,16 @@ const port= process.env.PORT || 5000;
 
 // middleware
 
-app.use(cors());
+//Must remove "/" from your production URL
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://the-spectator-b282d.web.app",
+      "the-spectator-b282d.firebaseapp.com",
+    ]
+  })
+);
 app.use(express.json());
 
 
@@ -28,7 +37,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const allArticles = client.db('Newspaper').collection('article');
 
@@ -56,8 +65,8 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
