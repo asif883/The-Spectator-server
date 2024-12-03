@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const port= process.env.PORT || 5000;
 
@@ -8,13 +9,13 @@ const port= process.env.PORT || 5000;
 
 // middleware
 
-//Must remove "/" from your production URL
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "https://the-spectator-b282d.web.app",
-      "the-spectator-b282d.firebaseapp.com",
+      "https://the-spectator-b282d.firebaseapp.com",
     ]
   })
 );
@@ -37,9 +38,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
 
     const allArticles = client.db('Newspaper').collection('article');
+    const allUsers = client.db('Newspaper').collection('users');
 
 
     // article add
@@ -63,10 +65,59 @@ async function run() {
       res.send(job)
   })
 
+  // add user
+
+  app.post('/users' , async ( req , res) =>{
+    const user = req.body
+    const result = await allUsers.insertOne(user)
+    res.send(result)
+  })
+  // get all users
+  app.get('/allUsers', async (req ,res) =>{
+    const result = await allUsers.find().toArray()
+    res.send(result)
+  })
+
+  // get user by email
+  app.get('/user/:email' , async ( req, res )=>{
+    const query = {email: req.params.email}
+    const user = await allUsers.findOne(query)
+    res.send(user)   
+  })
+
+    // make admin
+    app.patch('/users/admin/:id' , async ( req , res) =>{
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+          $set: {
+              role: "admin"
+          }
+      }
+      const result = await allUsers.updateOne(filter , updateDoc)
+      res.send(result)
+  })
+
+      // delete 
+      app.delete('/users/:id', async(req , res)=>{
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id)}
+        const result =await allUsers.deleteOne(query);
+        res.send(result);
+      })
+
+  // jwt   
+app.post('/authentication', async ( req , res )=>{
+  const userEmail = req.body;
+  const token = jwt.sign(userEmail , process.env.ACCESS_TOKEN, 
+    { expiresIn: '10d'})
+    res.send({token})
+ })
+
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
