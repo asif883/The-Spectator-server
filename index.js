@@ -42,22 +42,25 @@ async function run() {
 
     const allArticles = client.db('Newspaper').collection('article');
     const allUsers = client.db('Newspaper').collection('users');
+    const publisherCollection = client.db('Newspaper').collection('publishers');
+    const pendingCollection = client.db('Newspaper').collection('pendingArticles');
 
 
-    // article add
-    app.post('/articles', async(req, res)=>{
-       const article = req.body;
-       const result = await allArticles.insertOne(article);
-       res.send(result)
+    // // article add
+    // app.post('/articles', async(req, res)=>{
+    //    const article = req.body;
+    //    const result = await allArticles.insertOne(article);
+    //    res.send(result)
 
-    })
+    // })
     
-    app.get('/articles', async(req,res)=>{
-      const cursor = allArticles.find()
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+    // app.get('/articles', async(req,res)=>{
+    //   const cursor = allArticles.find()
+    //   const result = await cursor.toArray()
+    //   res.send(result)
+    // })
   //  find single article by id
+
     app.get('/details/:id', async(req , res) =>{
       const id = req.params.id;
       const query = {_id : new ObjectId(id)}
@@ -106,11 +109,57 @@ async function run() {
         res.send(result);
       })
 
+    // add publisher
+    app.post('/publisher', async (req, res) =>{
+      const info = req.body
+      const result = await publisherCollection.insertOne(info)
+      res.send(result)
+    })
+
+  //  get publisher
+  app.get('/all-publisher' , async ( req, res) =>{
+      const publisher = await publisherCollection.find().toArray()
+      res.send(publisher)
+  })
+
+// pending articles
+app.post('/pending-articles', async( req, res )=>{
+  const article = req.body
+  const result = await pendingCollection.insertOne(article)
+  res.send(result)
+})
+
+// get pending articles
+app.get('/all-pending-articles' , async( req , res) =>{
+  const result = await pendingCollection.find().toArray()
+  res.send(result)
+})
+// delete article
+app.delete('/all-pending-articles/:id', async(req , res)=>{
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)}
+  const result =await pendingCollection.deleteOne(query);
+  res.send(result);
+})
+
+// approve articles
+app.post('/approve', async( req , res )=>{
+  const article = req.body
+  const result = await allArticles.insertOne(article)
+  res.send(result)
+})
+
+// get approve articles 
+app.get('/articles' , async ( req, res) =>{
+  const articles = await allArticles.find().toArray()
+  res.send(articles)
+})
+
   // jwt   
 app.post('/authentication', async ( req , res )=>{
   const userEmail = req.body;
   const token = jwt.sign(userEmail , process.env.ACCESS_TOKEN, 
-    { expiresIn: '10d'})
+    { expiresIn: '1d'})
     res.send({token})
  })
 
