@@ -123,27 +123,27 @@ async function run() {
   })
 
 // pending articles
-app.post('/pending-articles', async( req, res )=>{
-  const article = req.body
-  const result = await pendingCollection.insertOne(article)
-  res.send(result)
-})
+// app.post('/pending-articles', async( req, res )=>{
+//   const article = req.body
+//   const result = await pendingCollection.insertOne(article)
+//   res.send(result)
+// })
 
-// get pending articles
-app.get('/all-pending-articles' , async( req , res) =>{
-  const result = await pendingCollection.find().toArray()
-  res.send(result)
-})
+// // get pending articles
+// app.get('/all-pending-articles' , async( req , res) =>{
+//   const result = await pendingCollection.find().toArray()
+//   res.send(result)
+// })
 // delete article
-app.delete('/all-pending-articles/:id', async(req , res)=>{
-  const id = req.params.id;
-  const query = {_id : new ObjectId(id)}
-  const result =await pendingCollection.deleteOne(query);
-  res.send(result);
-})
+// app.delete('/all-pending-articles/:id', async(req , res)=>{
+//   const id = req.params.id;
+//   const query = {_id : new ObjectId(id)}
+//   const result =await pendingCollection.deleteOne(query);
+//   res.send(result);
+// })
 
-// approve articles
-app.post('/approve', async( req , res )=>{
+// add articles
+app.post('/add-articles', async( req , res )=>{
   const article = req.body
   const result = await allArticles.insertOne(article)
   res.send(result)
@@ -154,6 +154,19 @@ app.get('/articles' , async ( req, res) =>{
   const articles = await allArticles.find().toArray()
   res.send(articles)
 })
+
+    // approve article
+    app.patch('/article/admin/:id' , async ( req , res) =>{
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+          $set: {
+              status: "approve"
+          }
+      }
+      const result = await allArticles.updateOne(filter , updateDoc)
+      res.send(result)
+  })
 
   // jwt   
 app.post('/authentication', async ( req , res )=>{
