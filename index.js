@@ -43,23 +43,10 @@ async function run() {
     const allArticles = client.db('Newspaper').collection('article');
     const allUsers = client.db('Newspaper').collection('users');
     const publisherCollection = client.db('Newspaper').collection('publishers');
-    const pendingCollection = client.db('Newspaper').collection('pendingArticles');
+    // const pendingCollection = client.db('Newspaper').collection('pendingArticles');
 
 
-    // // article add
-    // app.post('/articles', async(req, res)=>{
-    //    const article = req.body;
-    //    const result = await allArticles.insertOne(article);
-    //    res.send(result)
-
-    // })
     
-    // app.get('/articles', async(req,res)=>{
-    //   const cursor = allArticles.find()
-    //   const result = await cursor.toArray()
-    //   res.send(result)
-    // })
-  //  find single article by id
 
     app.get('/details/:id', async(req , res) =>{
       const id = req.params.id;
@@ -122,25 +109,6 @@ async function run() {
       res.send(publisher)
   })
 
-// pending articles
-// app.post('/pending-articles', async( req, res )=>{
-//   const article = req.body
-//   const result = await pendingCollection.insertOne(article)
-//   res.send(result)
-// })
-
-// // get pending articles
-// app.get('/all-pending-articles' , async( req , res) =>{
-//   const result = await pendingCollection.find().toArray()
-//   res.send(result)
-// })
-// delete article
-// app.delete('/all-pending-articles/:id', async(req , res)=>{
-//   const id = req.params.id;
-//   const query = {_id : new ObjectId(id)}
-//   const result =await pendingCollection.deleteOne(query);
-//   res.send(result);
-// })
 
 // add articles
 app.post('/add-articles', async( req , res )=>{
@@ -155,7 +123,7 @@ app.get('/articles' , async ( req, res) =>{
   res.send(articles)
 })
 
-    // approve article
+  // approve article
     app.patch('/article/admin/:id' , async ( req , res) =>{
       const id = req.params.id
       const filter = { _id: new ObjectId(id) }
@@ -167,6 +135,56 @@ app.get('/articles' , async ( req, res) =>{
       const result = await allArticles.updateOne(filter , updateDoc)
       res.send(result)
   })
+     // Update
+     app.patch('/updateArticle/:id',async (req, res)=>{
+      const id =req.params.id;
+      const filter= {_id: new ObjectId(id)};
+      const options ={upsert: true};
+      const updateArticle = req.body
+      const update ={
+        $set:{
+          title:updateArticle.title,
+          image:updateArticle.image,
+          tags:updateArticle.tags,
+          date:updateArticle.date, 
+          publisher:updateArticle.publisher,
+          description:updateArticle.description, 
+          user_name:updateArticle.user_name, 
+          user_email:updateArticle.user_email,  
+        }
+      }
+      const result =await allArticles.updateOne(filter,update,options);
+      res.send(result)
+    })
+  
+ // make premium
+ app.patch('/article/premium/:id' , async ( req , res) =>{
+  const id = req.params.id
+  const filter = { _id: new ObjectId(id) }
+  const updateDoc = {
+      $set: {
+          isPremium: "yes"
+      }
+  }
+  const result = await allArticles.updateOne(filter , updateDoc)
+  res.send(result)
+})
+
+// delete articles
+app.delete('/articles/:id', async(req , res)=>{
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)}
+  const result =await allArticles.deleteOne(query);
+  res.send(result);
+})
+  // find articles by email
+  app.get('/my-article/:email', async (req , res) =>{
+    const email= req.params.email
+    const query = {user_email: email}
+    const result = await allArticles.find(query).toArray()
+    res.send(result)
+  })
+
 
   // jwt   
 app.post('/authentication', async ( req , res )=>{
