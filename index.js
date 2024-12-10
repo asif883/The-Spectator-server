@@ -158,6 +158,24 @@ app.get('/articles' , async ( req, res) =>{
       const result = await allArticles.updateOne(filter , updateDoc)
       res.send(result)
   })
+
+    //  update user
+   app.patch('/updateUser/:email' , async ( req, res )=>{
+    const email = req.params.email;
+    const filter = {email : email}
+    const options ={upsert: true};
+    const updateUser = req.body
+    const update ={
+      $set:{
+         name: updateUser.name,
+         imageURL: updateUser.imageURL,
+
+      }
+    }
+    const result = await allUsers.updateOne( filter, update, options)
+    res.send(result)
+   })
+
      // Update
      app.patch('/updateArticle/:id',async (req, res)=>{
       const id =req.params.id;
