@@ -118,9 +118,32 @@ app.post('/add-articles', async( req , res )=>{
 })
 
 // get approve articles 
+
 app.get('/articles' , async ( req, res) =>{
-  const articles = await allArticles.find().toArray()
-  res.send(articles)
+  const {title,  publisher, tags} = req.query 
+      
+        const query ={}
+       
+        if(title){
+          query.title ={ $regex:title , $options: 'i'}
+        }
+        if(publisher){
+          query.publisher =publisher
+        }
+        if(tags){
+          query.tags = tags
+        }
+
+        const articles = await allArticles.find(query).toArray()
+        
+        const articlesData = await allArticles.find({}, { projection:{ publisher:1 , tags: 1}}).toArray();
+  
+        const totalArticles = await allArticles.countDocuments()
+  
+        const publishers = [...new Set(articlesData.map((article)=> article.publisher ))]
+        const tag = [...new Set(articlesData.map((article)=> article.tags ))]
+  
+        res.send({articles, publishers, tag})
 })
 
   // approve article
@@ -184,7 +207,33 @@ app.delete('/articles/:id', async(req , res)=>{
     const result = await allArticles.find(query).toArray()
     res.send(result)
   })
+ 
+  app.get('/article/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    // console.log(id);
+      const article = await allArticles.findOneAndUpdate(
+        {_id : new ObjectId(id)}, // Filter criteria
+        { $inc: { views: 1 } }, // Increment the views field
+        { new: true, useFindAndModify: false }
+      )
+       if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
 
+    res.json(article);
+  })
+
+  // get Trending Articles
+  app.get("/articles/trending", async (req, res) => {
+  
+    const trendingArticles = await allArticles.find()
+      .sort({ views: -1 }) 
+      .limit(5).toArray(); 
+
+    res.json(trendingArticles);
+ 
+  });
 
   // jwt   
 app.post('/authentication', async ( req , res )=>{
